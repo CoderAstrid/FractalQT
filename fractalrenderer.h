@@ -8,30 +8,41 @@
 
 const unsigned int PALATE_SIZE = 256;
 const int PALETE_STEP = 5;
-const int MAX_INTERATION = 50;
+const int MAX_INTERATION = 250;
 
 class FractalRenderer
 {
 public:
     FractalRenderer();
-
+    ~FractalRenderer();
     void stop();
-    void setDimensions(unsigned x,unsigned y);
+    bool setDimensions(int x, int y);
     void runRenderer(unsigned threads);
-    bool isFinished(){return drawingFinished;}
-    std::vector< std::vector<unsigned> > getImageData(){return imageData;}
-private:
-    std::vector< std::vector<unsigned> > imageData;
-    unsigned width;
-    unsigned height;
-    unsigned threadsAlive;
-    std::mutex lock;
+    bool isFinished() const
+    {
+        return drawingFinished;
+    }
+    const unsigned char* getImageData() const
+    {
+        return imageData;
+    }
+    int area() const
+    {
+        return widthEx * height;
+    }
+private:    
+    int             width;    
+    int             height;
+    unsigned char   *imageData;
+    int             widthEx;
+    unsigned        alivedThreads;
+    std::mutex      lock;
     std::chrono::milliseconds renderStartTime;
     bool drawingFinished;
     bool isStopped;
 
-    unsigned value(int x, int y);
-    void render(unsigned widthFrom, unsigned widthTo);
+    unsigned char value(int x, int y);
+    void render(int widthFrom, int widthTo);
 };
 
 #endif // FRACTALRENDERER_H

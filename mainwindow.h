@@ -6,6 +6,7 @@
 #include <QtDebug>
 #include <QTimer>
 #include "fractalrenderer.h"
+#include "colorlut.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,13 +24,17 @@ public:
     virtual void resizeEvent(QResizeEvent *event);
 private:
     QColor value(int x, int y);
+    void updatePalette();
+public slots:
+    void onChangedPalette(int newPalette);
+    void onChangedCount(int newCountOfColor);
 private:
     Ui::MainWindow *ui;
     unsigned rMult, gMult, bMult;
     FractalRenderer mandelbrot;
+    ColorLut        colorTable;
     QTimer *updateTimer;
-    std::vector< std::vector<unsigned> > imageData;
-
+    bool            isStarted;
 };
 #endif // MAINWINDOW_H
 //EOF

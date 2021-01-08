@@ -6,26 +6,167 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>903</width>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Mandelbrot Demo</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>22</height>
-    </rect>
-   </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
+    <item row="0" column="0" rowspan="2">
+     <widget class="MandelBrotView" name="gvMandel"/>
+    </item>
+    <item row="0" column="1" rowspan="2">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
+      <item>
+       <layout class="QVBoxLayout" name="vlPalette">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblPalette">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Pallettes:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+          </property>
+          <property name="margin">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cbPalette"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="vlCount">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblCount">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Count of Colors:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="hsCount">
+          <property name="minimum">
+           <number>50</number>
+          </property>
+          <property name="maximum">
+           <number>250</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBothSides</enum>
+          </property>
+          <property name="tickInterval">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="vlJulia">
+        <item>
+         <widget class="QLabel" name="lblJulia">
+          <property name="text">
+           <string>Julia Set:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGraphicsView" name="gvJulia"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="sBar"/>
  </widget>
+ <tabstops>
+  <tabstop>gvMandel</tabstop>
+  <tabstop>cbPalette</tabstop>
+  <tabstop>hsCount</tabstop>
+  <tabstop>gvJulia</tabstop>
+ </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>cbPalette</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onChangedPalette(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>783</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>451</x>
+     <y>271</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hsCount</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onChangedCount(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>836</x>
+     <y>100</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>895</x>
+     <y>272</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onChangedPalette(int)</slot>
+  <slot>onChangedCount(int)</slot>
+ </slots>
 </ui>

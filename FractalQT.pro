@@ -16,13 +16,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    colorlut.cpp \
     fractalrenderer.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    mandelbrotview.cpp
 
 HEADERS += \
+    colorlut.h \
     fractalrenderer.h \
-    mainwindow.h
+    mainwindow.h \
+    mandelbrotview.h
 
 FORMS += \
     mainwindow.ui

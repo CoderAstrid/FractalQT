@@ -4,21 +4,40 @@
 #include <QDebug>
 
 FractalRenderer::FractalRenderer()
+    : width(800)
+    , height(600)
+    , imageData(nullptr)
+    , widthEx(0)
+    , alivedThreads(0)
+    , drawingFinished(false)
+    , isStopped(false)
 {
-    width=800;
-    height=600;
-    threadsAlive=0;
-    drawingFinished=false;
-    isStopped=false;
-    std::vector<std::vector<unsigned> > temp(width, std::vector<unsigned> (height, 0));
-    imageData = temp;
 }
 
-void FractalRenderer::setDimensions(unsigned x, unsigned y)
+FractalRenderer::~FractalRenderer()
 {
-    width=x; height=y;
-    std::vector<std::vector<unsigned> > temp(width, std::vector<unsigned> (height, 0));
-    imageData = temp;
+    if(imageData) {
+        delete[] imageData;
+        imageData = nullptr;
+    }
+}
+
+bool FractalRenderer::setDimensions(int _w, int _h)
+{
+    bool change = false;
+    if(_w > 0 && _h > 0 && (_w != width || _h != height)) {
+        if(!isStopped) {
+            stop();
+        }
+        width = _w; height = _h;
+        widthEx = ((((width * 8) + 31) & ~31) >> 3);
+        if(imageData) {
+            delete[] imageData;
+        }
+        imageData = new unsigned char[widthEx * height];
+        change = true;
+    }
+    return change;
 }
 
 void FractalRenderer::runRenderer(unsigned threadsCount)
@@ -38,32 +57,34 @@ void FractalRenderer::runRenderer(unsigned threadsCount)
     unsigned widthPart=width/threadsCount;
     std::vector<std::thread> workers(threadsCount);
 
-   for(unsigned i=0;i<threadsCount;i++)
-   {
+   for(unsigned i=0;i<threadsCount;i++) {
        workers[i] = std::thread(&FractalRenderer::render, this,
                                 i*widthPart,
                                 (i+1)*widthPart);
-       threadsAlive++;
+       alivedThreads++;
        workers[i].detach();
    }
 }
 
-void FractalRenderer::render(unsigned widthFrom, unsigned widthTo)
+void FractalRenderer::render(int widthFrom, int widthTo)
 {
-    for(unsigned x=widthFrom;x<widthTo;x++)
-    {
-        for(unsigned y=0;y<height;y++)
-        {
-            imageData[x][y]=value(x,y);
-            if(isStopped){break;}
+    for(int y=0;y<height;y++) {
+        unsigned char* tmp = imageData + y * widthEx + widthFrom;
+        for(int x=widthFrom;x<widthTo;x++, tmp++) {
+            *tmp = value(x,y);
+            if(isStopped) {
+                break;
+            }
         }
-        if(isStopped){break;}
+        if(isStopped) {
+            break;
+        }
      }
 
     lock.lock();
-    threadsAlive--;
+    alivedThreads--;
 
-    if(threadsAlive==0)
+    if(alivedThreads==0)
     {
         std::chrono::milliseconds renderEndTime=std::chrono::duration_cast
         <std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
@@ -74,11 +95,11 @@ void FractalRenderer::render(unsigned widthFrom, unsigned widthTo)
     lock.unlock();
 }
 
-unsigned FractalRenderer::value(int x, int y)
+unsigned char FractalRenderer::value(int x, int y)
 {
-    std::complex<float> point((float)x/width-1.5, (float)y/height-0.5);
+    std::complex<float> point((float)x/width * 2-1.5, (float)y/height*2-1);
     std::complex<float> z(0, 0);
-    unsigned iterations = 0;
+    unsigned char iterations = 0;
 
     while (abs(z) < 2 && iterations < MAX_INTERATION)
     {
@@ -99,7 +120,7 @@ unsigned FractalRenderer::value(int x, int y)
 void FractalRenderer::stop()
 {
     isStopped=true;
-    while(threadsAlive>0)
+    while(alivedThreads>0)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
