@@ -10,7 +10,7 @@ Drawing of mandelbrot by QT
 
 Only concept & multi thread
 
-![Screenshot](screenshots/rev01.PNG)
+<img src="screenshots/rev01.PNG" width='50%' height='50%' />
 
 ### Ver-0.2
 
