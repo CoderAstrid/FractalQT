@@ -1,4 +1,5 @@
 # FractalQT
+
 Drawing of mandelbrot by QT
 
 ## Contents
@@ -8,6 +9,8 @@ Drawing of mandelbrot by QT
 ### Ver-0.1
 
 Only concept & multi thread
+
+![Screenshot](screenshots/rev01.PNG)
 
 ### Ver-0.2
 
