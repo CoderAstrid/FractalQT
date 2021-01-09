@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     colorlut.cpp \
+    custom_ctrl/customslider.cpp \
     fractalrenderer.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 
 HEADERS += \
     colorlut.h \
+    custom_ctrl/customslider.h \
     fractalrenderer.h \
     mainwindow.h \
     mandelbrotview.h
@@ -38,3 +40,6 @@ TRANSLATIONS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    resources.qrc

@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
     <item row="0" column="0" rowspan="2">
-     <widget class="MandelBrotView" name="gvMandel"/>
+     <widget class="MandelBrotView" name="gvMandel" native="true"/>
     </item>
     <item row="0" column="1" rowspan="2">
      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
@@ -71,7 +71,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSlider" name="hsCount">
+         <widget class="CustomSlider" name="hsCount">
           <property name="minimum">
            <number>50</number>
           </property>
@@ -124,6 +124,18 @@
   </widget>
   <widget class="QStatusBar" name="sBar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MandelBrotView</class>
+   <extends>QWidget</extends>
+   <header>mandelbrotview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomSlider</class>
+   <extends>QSlider</extends>
+   <header location="global">custom_ctrl/customslider.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>gvMandel</tabstop>
   <tabstop>cbPalette</tabstop>
