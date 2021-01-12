@@ -41,6 +41,11 @@ bool FractalRenderer::setDimensions(int _w, int _h)
     return change;
 }
 
+void FractalRenderer::updateJulia(int _x, int _y)
+{
+
+}
+
 void FractalRenderer::runRenderer(unsigned threadsCount)
 {
     if(threadsCount==0){threadsCount=1;}

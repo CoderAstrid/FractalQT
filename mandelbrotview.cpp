@@ -55,6 +55,9 @@ void MandelBrotView::mousePressEvent(QMouseEvent *event)
     QPoint pos = event->pos();
     setJulia = true;
     posJulia = pos;
+    if(render) {
+        render->updateJulia(pos.x(), pos.y());
+    }
     update();
 }
 

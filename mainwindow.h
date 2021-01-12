@@ -25,6 +25,7 @@ public:
 private:
 //    QColor value(int x, int y);
     void updatePalette();
+    void initialize_color();
 public slots:
     void onChangedPalette(int newPalette);
     void onChangedCount(int newCountOfColor);

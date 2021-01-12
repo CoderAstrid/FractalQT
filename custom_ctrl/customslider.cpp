@@ -47,6 +47,14 @@ void CustomSlider::paintEvent(QPaintEvent * event)
         interval = pageStep();
     }
 
+    // draw the slider (this is basically copy/pasted from QSlider::paintEvent)
+    opt.subControls = QStyle::SC_SliderGroove;
+    p.drawComplexControl(QStyle::CC_Slider, opt);
+
+    // draw the slider handle
+    opt.subControls = QStyle::SC_SliderHandle;
+    p.drawComplexControl(QStyle::CC_Slider, opt);
+
     if (tickPosition() != NoTicks)
     {
         if (orientation() == Qt::Vertical) {
@@ -91,11 +99,4 @@ void CustomSlider::paintEvent(QPaintEvent * event)
         }
     }
 
-    // draw the slider (this is basically copy/pasted from QSlider::paintEvent)
-    opt.subControls = QStyle::SC_SliderGroove;
-    p.drawComplexControl(QStyle::CC_Slider, opt);
-
-    // draw the slider handle
-    opt.subControls = QStyle::SC_SliderHandle;
-    p.drawComplexControl(QStyle::CC_Slider, opt);
 }

@@ -14,7 +14,19 @@
    <string>Mandelbrot Demo</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" columnstretch="5,2">
     <item row="0" column="0" rowspan="2">
      <widget class="MandelBrotView" name="gvMandel" native="true"/>
     </item>

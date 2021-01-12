@@ -32,6 +32,7 @@ public:
     {
         return widthEx * height;
     }
+    void updateJulia(int x, int y);
 private:    
     int             width;    
     int             height;
