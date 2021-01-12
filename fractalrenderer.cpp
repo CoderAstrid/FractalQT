@@ -4,7 +4,8 @@
 #include <QDebug>
 
 FractalRenderer::FractalRenderer()
-    : width(800)
+    : QObject()
+    , width(800)
     , height(600)
     , imageData(nullptr)
     , widthEx(0)
@@ -91,6 +92,7 @@ void FractalRenderer::render(int widthFrom, int widthTo)
         renderEndTime-=renderStartTime;
         drawingFinished=true;
         qDebug()<<"Finished in"<<renderEndTime.count()<<"ms";
+        emit doneUpdate();
     }
     lock.unlock();
 }

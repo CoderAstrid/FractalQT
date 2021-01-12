@@ -5,16 +5,18 @@
 #include <chrono>
 #include <mutex>
 #include <thread>
+#include <QObject>
 
 const unsigned int PALATE_SIZE = 256;
 const int PALETE_STEP = 5;
 const int MAX_INTERATION = 250;
 
-class FractalRenderer
+class FractalRenderer : public QObject
 {
+    Q_OBJECT
 public:
     FractalRenderer();
-    ~FractalRenderer();
+    virtual ~FractalRenderer();
     void stop();
     bool setDimensions(int x, int y);
     void runRenderer(unsigned threads);
@@ -43,6 +45,8 @@ private:
 
     unsigned char value(int x, int y);
     void render(int widthFrom, int widthTo);
+signals:
+    void doneUpdate();
 };
 
 #endif // FRACTALRENDERER_H

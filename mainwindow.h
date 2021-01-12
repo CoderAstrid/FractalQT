@@ -23,17 +23,19 @@ public:
     virtual void paintEvent(QPaintEvent *event);
     virtual void resizeEvent(QResizeEvent *event);
 private:
-    QColor value(int x, int y);
+//    QColor value(int x, int y);
     void updatePalette();
 public slots:
     void onChangedPalette(int newPalette);
     void onChangedCount(int newCountOfColor);
+
+    void onDoneUpdate();
 private:
     Ui::MainWindow *ui;
     unsigned rMult, gMult, bMult;
     FractalRenderer mandelbrot;
     ColorLut        colorTable;
-    QTimer *updateTimer;
+//    QTimer *updateTimer;
     bool            isStarted;
 };
 #endif // MAINWINDOW_H

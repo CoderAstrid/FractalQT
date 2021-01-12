@@ -11,14 +11,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     colorTable.Generate(MAX_INTERATION, Palette::ePalHeightMap);
 
-    // timer for init drawing
-    updateTimer = new QTimer(this);
-    connect(updateTimer, SIGNAL(timeout()), this, SLOT(update()));
-    updateTimer->start(INT_DRAW_TIME);
-
     ui->setupUi(this);
     for(int i = 0; i < eCntPalette; i++)
         ui->cbPalette->addItem(NAMES_PALETTE[i]);
+
+    ui->gvMandel->setRender(&mandelbrot);
+
+    connect(&mandelbrot, SIGNAL(doneUpdate()), this, SLOT(onDoneUpdate()));
 }
 
 MainWindow::~MainWindow()
@@ -28,29 +27,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::paintEvent(QPaintEvent * /*event*/)
 {
-    if(mandelbrot.isFinished() && updateTimer->isActive()) {
-        updateTimer->stop();
+    if(!isStarted) {
+        isStarted = true;
+        qDebug() << "First Paint";
+        return;
     }
-    int w = ui->gvMandel->width();
-    int h = ui->gvMandel->height();
-    const uchar* imageData=mandelbrot.getImageData();
-    ui->gvMandel->Update(imageData, w, h, mandelbrot.area(), colorTable.table());
+    qDebug() << "Normal Paint";
 }
 
 void MainWindow::resizeEvent(QResizeEvent * event)
 {
-    int w = ui->gvMandel->width();
-    int h = ui->gvMandel->height();
-    if(mandelbrot.setDimensions(w, h)) {
-        if(mandelbrot.isFinished() && updateTimer->isActive()) {
-            updateTimer->stop();
-        }
-        mandelbrot.runRenderer(std::thread::hardware_concurrency());
-
-        if(updateTimer->isActive()==false) {
-            updateTimer->start(INT_DRAW_TIME);
-        }
-    }
 }
 
 void MainWindow::onChangedPalette(int newPalette)
@@ -71,5 +57,12 @@ void MainWindow::updatePalette()
     int idxPal = ui->cbPalette->currentIndex();
     colorTable.Generate(cnt, (Palette)idxPal);
     ui->gvMandel->UpdatePalette(colorTable.table());
+}
+
+void MainWindow::onDoneUpdate()
+{
+    ui->gvMandel->UpdateMandel(colorTable.table());
+
+    qDebug()<<"Finished from Thread";
 }
 //EOF
