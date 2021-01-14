@@ -9,8 +9,22 @@ MandelBrotView::MandelBrotView(QWidget *parent)
     , image(nullptr)
     , drawImage(nullptr)
     , render(nullptr)
-    , setJulia(false)
+#if _DEV_VER101
+    , left(-3.0f)
+    , right(1.0f)
+    , top(2.0f)
+    , bottom(-2.0f)
+    , isMouseLButton(false)
+    , mouseMode(0)
+    , mouseX(0)
+    , mouseY(0)
+#endif//_DEV_VER101
+    , isJulia(false)
 {
+#if _DEV_VER101
+    juliaPoint.real(-1);
+    juliaPoint.imag(0);
+#endif//_DEV_VER101
 }
 
 MandelBrotView::~MandelBrotView()
@@ -35,13 +49,13 @@ void MandelBrotView::paintEvent(QPaintEvent * /*event*/)
     if(drawImage)
         painter.drawImage(QPoint(0,0), *drawImage);
     mutexDraw.unlock();
-    if(setJulia) {
-        QRect rc(posJulia.x()-3,posJulia.y()-3,6,6);
+    if(isJulia) {
+        QRect rc(oldMousePt.x()-3,oldMousePt.y()-3,6,6);
         painter.drawRect(rc);
     }
 }
 
-void MandelBrotView::resizeEvent(QResizeEvent * event)
+void MandelBrotView::resizeEvent(QResizeEvent * /*event*/)
 {
     int w = width();
     int h = height();
@@ -53,8 +67,8 @@ void MandelBrotView::resizeEvent(QResizeEvent * event)
 void MandelBrotView::mousePressEvent(QMouseEvent *event)
 {
     QPoint pos = event->pos();
-    setJulia = true;
-    posJulia = pos;
+    isJulia = true;
+    oldMousePt = pos;
     if(render) {
         render->updateJulia(pos.x(), pos.y());
     }

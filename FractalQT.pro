@@ -26,6 +26,7 @@ SOURCES += \
 HEADERS += \
     colorlut.h \
     custom_ctrl/customslider.h \
+    devMacro.h \
     fractalrenderer.h \
     mainwindow.h \
     mandelbrotview.h
