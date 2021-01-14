@@ -25,6 +25,7 @@ public:
     void setJuliaView(bool mode)
     {
         isJulia = mode;
+        resize(width(), height());
     }
 #else
     // main public functions
@@ -62,9 +63,11 @@ private:
     int                 mouseMode;
     int                 mouseX;
     int                 mouseY;
+    std::vector<QColor> colorTable;
 #else
-    QMutex              mutexDraw;
+
 #endif//_DEV_VER101
+    QMutex              mutexDraw;
     QPoint              oldMousePt;
 
     // for julia set
@@ -73,6 +76,7 @@ private:
     Complex             juliaPoint;
 
     void recal();
+    void updateContents();
 #endif//_DEV_VER101
 };
 

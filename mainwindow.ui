@@ -122,9 +122,18 @@
          <widget class="QLabel" name="lblJulia">
           <property name="minimumSize">
            <size>
-            <width>200</width>
-            <height>200</height>
+            <width>0</width>
+            <height>0</height>
            </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
           </property>
           <property name="text">
            <string>Julia Set:</string>
@@ -132,7 +141,20 @@
          </widget>
         </item>
         <item>
-         <widget class="MandelBrotView" name="gvJulia" native="true"/>
+         <widget class="MandelBrotView" name="gvJulia" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>1</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>200</height>
+           </size>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

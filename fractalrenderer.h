@@ -13,6 +13,11 @@ const unsigned int PALATE_SIZE = 256;
 const int PALETE_STEP = 5;
 const int MAX_INTERATION = 250;
 
+const double INIT_LEFT = -3.0f;
+const double INIT_TOP = -2.0f;
+const double INIT_RIGHT = 1.0f;
+const double INIT_BOTTOM = 2.0f;
+
 typedef std::complex<double>        Complex;
 typedef unsigned char               IndexOfPt;
 
@@ -29,7 +34,7 @@ public:
     {
         return drawingFinished;
     }
-    const unsigned char* getImageData() const
+    const IndexOfPt* getImageData() const
     {
         return imageData;
     }

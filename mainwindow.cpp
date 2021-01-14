@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
 #if _DEV_VER101
+    updatePalette();
     ui->gvJulia->setJuliaView(true);
     connect(ui->gvMandel, SIGNAL(number_chosen(Complex)), ui->gvJulia, SLOT(set_julia_number(Complex)));
 #else
@@ -63,6 +64,9 @@ void MainWindow::updatePalette()
     int idxPal = ui->cbPalette->currentIndex();
     colorTable.Generate(cnt, (Palette)idxPal);
     ui->gvMandel->UpdatePalette(colorTable.table());
+#if _DEV_VER101
+    ui->gvJulia->UpdatePalette(colorTable.table());
+#endif//_DEV_VER101
 }
 
 void MainWindow::initialize_color()
