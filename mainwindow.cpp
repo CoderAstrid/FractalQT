@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QPixmap>
 #include <QIcon>
+#include <QLabel>
 
 const int INT_DRAW_TIME = 100;
 
@@ -18,7 +19,8 @@ MainWindow::MainWindow(QWidget *parent)
 #if _DEV_VER101
     updatePalette();
     ui->gvJulia->setJuliaView(true);
-    connect(ui->gvMandel, SIGNAL(number_chosen(Complex)), ui->gvJulia, SLOT(set_julia_number(Complex)));
+    connect(ui->gvMandel, SIGNAL(juliaPointChanged(Complex)), ui->gvJulia, SLOT(setJuliaPoint(Complex)));
+    connect(ui->gvMandel, SIGNAL(mandelPointChanged(Complex)), this, SLOT(onChangedMandelPt(Complex)));
 #else
     ui->gvMandel->setRender(&mandelbrot);
     connect(&mandelbrot, SIGNAL(doneUpdate()), this, SLOT(onDoneUpdate()));
@@ -34,7 +36,7 @@ void MainWindow::paintEvent(QPaintEvent * /*event*/)
 {
     if(!isStarted) {
         isStarted = true;
-        initialize_color();
+        initialColorCombo();
         qDebug() << "First Paint";
         return;
     }
@@ -63,13 +65,14 @@ void MainWindow::updatePalette()
     int cnt = ui->hsCount->value();
     int idxPal = ui->cbPalette->currentIndex();
     colorTable.Generate(cnt, (Palette)idxPal);
-    ui->gvMandel->UpdatePalette(colorTable.table());
+    ui->gvMandel->updatePalette(colorTable.table());
+
 #if _DEV_VER101
-    ui->gvJulia->UpdatePalette(colorTable.table());
+    ui->gvJulia->updatePalette(colorTable.table());
 #endif//_DEV_VER101
 }
 
-void MainWindow::initialize_color()
+void MainWindow::initialColorCombo()
 {
     double pix_width = ui->cbPalette->width(); // Since the array size is 256, so the picture size need to go to a multiple of 256
     double pix_height = 23;
@@ -88,7 +91,14 @@ void MainWindow::initialize_color()
         ui->cbPalette->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     }
 }
+
 #if _DEV_VER101
+void MainWindow::onChangedMandelPt(Complex pt)
+{
+    QString sMsg("%1, %2");
+    QString status = QString::number(pt.real(), 'g') + ", " + QString::number(pt.imag(), 'g');
+    ui->sBar->showMessage(status);
+}
 #else
 void MainWindow::onDoneUpdate()
 {
@@ -97,4 +107,12 @@ void MainWindow::onDoneUpdate()
     qDebug()<<"Finished from Thread";
 }
 #endif//_DEV_VER101
+
+void MainWindow::on_cmdReset_clicked()
+{
+    ui->gvMandel->reset();
+    ui->gvJulia->reset();
+}
+
 //EOF
+

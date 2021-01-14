@@ -1,3 +1,4 @@
+#include "common_type.h"
 #include "colorlut.h"
 
 ColorLut::ColorLut(int count, Palette pal)
@@ -14,7 +15,10 @@ void ColorLut::Generate(int sz, Palette pal)
         PaletteTable.clear();
         for(int i = 0; i < sz; i++) {
             int g = 256 * i / sz;
+#if _DEV_QT
             PaletteTable.push_back(qRgb(g, g, g));
+#else
+#endif//_DEV_QT
         }
     }
     else if(pal == ePalHeightMap) {
@@ -23,7 +27,10 @@ void ColorLut::Generate(int sz, Palette pal)
         PaletteTable.clear();
         for(int i = 0; i < sz; i++) {
             double h = golden_ratio * 360 * i / sz;
+#if _DEV_QT
             PaletteTable.push_back(QColor::fromHsv(int(h), s, v, a));
+#else
+#endif//_DEV_QT
         }
     }
 }

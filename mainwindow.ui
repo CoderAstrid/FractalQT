@@ -31,7 +31,27 @@
      <widget class="MandelBrotView" name="gvMandel" native="true"/>
     </item>
     <item row="0" column="1" rowspan="2">
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
+      <item>
+       <layout class="QVBoxLayout" name="vlCmd">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="cmdReset">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Reset</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item>
        <layout class="QVBoxLayout" name="vlPalette">
         <property name="spacing">
@@ -162,7 +182,11 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="sBar"/>
+  <widget class="QStatusBar" name="sBar">
+   <property name="styleSheet">
+    <string notr="true">color:rgb(200,200,200)</string>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

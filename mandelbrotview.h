@@ -1,10 +1,18 @@
 #ifndef MANDELBROTVIEW_H
 #define MANDELBROTVIEW_H
+
 #include "devMacro.h"
 #include <QWidget>
 #include "fractalrenderer.h"
 #include <QMutex>
 #include <complex>
+
+typedef enum E_MousePressType{
+    eDownNone,
+    eLDownJulia,
+    eRDownMove,
+    eCntMousePressType
+}MousePressType;
 
 class MandelBrotView : public QWidget
 {
@@ -25,25 +33,25 @@ public:
     void setJuliaView(bool mode)
     {
         isJulia = mode;
+
         resize(width(), height());
     }
+    void reset();
 #else
     // main public functions
     void setRender(FractalRenderer* _render);
     void UpdateMandel(const std::vector<QColor>& table);
     void Update(const uchar* img, int w, int h, int sz, const std::vector<QColor>& table);
 #endif//_DEV_VER101
-    void UpdatePalette(const std::vector<QColor>& table);
-
-    /* ------------------- new updating ------------------- */
+    void updatePalette(const std::vector<QColor>& table);    
 #if _DEV_VER101
 public slots:
-    void set_julia_number(Complex newnum);
-    void mod_changed(int newmod);
+    void setJuliaPoint(Complex newnum);
+    void intervalChanged(int newmod);
 
 signals:
-    void number_chosen(Complex newnum);
-    /* ------------------- new updating ------------------- */
+    void juliaPointChanged(Complex newnum);
+    void mandelPointChanged(Complex newnum);
 #endif//_DEV_VER101
 
 private:
@@ -60,7 +68,7 @@ private:
     // for drawing
 #if _DEV_VER101
     bool                isMouseLButton;
-    int                 mouseMode;
+    MousePressType      mouseMode;
     int                 mouseX;
     int                 mouseY;
     std::vector<QColor> colorTable;
@@ -75,7 +83,7 @@ private:
 #if _DEV_VER101
     Complex             juliaPoint;
 
-    void recal();
+    void recalcAll();
     void updateContents();
 #endif//_DEV_VER101
 };

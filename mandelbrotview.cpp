@@ -15,7 +15,7 @@ MandelBrotView::MandelBrotView(QWidget *parent)
     , top(INIT_TOP)
     , bottom(INIT_BOTTOM)
     , isMouseLButton(false)
-    , mouseMode(0)
+    , mouseMode(eDownNone)
     , mouseX(0)
     , mouseY(0)
 #endif//_DEV_VER101
@@ -26,7 +26,7 @@ MandelBrotView::MandelBrotView(QWidget *parent)
     juliaPoint.real(-1);
     juliaPoint.imag(0);
     colorTable.clear();
-    recal();
+    recalcAll();
 #endif//_DEV_VER101
 }
 
@@ -66,7 +66,7 @@ void MandelBrotView::resizeEvent(QResizeEvent * event)
 #if _DEV_VER101
     QSize nsize = event->size();
     render->resize(nsize.width(), nsize.height());
-    recal();
+    recalcAll();
 #else
     int w = width();
     int h = height();
@@ -80,12 +80,14 @@ void MandelBrotView::mousePressEvent(QMouseEvent *event)
 {
     QPoint pos = event->pos();
 #if _DEV_VER101
-    if((event->button() == Qt::LeftButton && isMouseLButton) || (event->button() == Qt::RightButton && !isMouseLButton)) {
-        mouseMode = 1;
+    if((event->button() == Qt::LeftButton && isMouseLButton) ||
+            (event->button() == Qt::RightButton && !isMouseLButton)) {
+        mouseMode = eRDownMove;
         oldMousePt = pos;
-    } else if((event->button() == Qt::RightButton && isMouseLButton) || (event->button() == Qt::LeftButton && !isMouseLButton)) {
-        mouseMode = 2;
-        emit number_chosen(Complex(left+(right-left)*double(pos.x())/double(width()),
+    } else if((event->button() == Qt::RightButton && isMouseLButton) ||
+              (event->button() == Qt::LeftButton && !isMouseLButton)) {
+        mouseMode = eLDownJulia;
+        emit juliaPointChanged(Complex(left+(right-left)*double(pos.x())/double(width()),
                                   bottom+(top-bottom)*double(height()-pos.y())/double(height())));
     }
 #else
@@ -101,7 +103,7 @@ void MandelBrotView::mousePressEvent(QMouseEvent *event)
 #if _DEV_VER101
 void MandelBrotView::mouseMoveEvent(QMouseEvent *event)
 {
-    if(mouseMode == 1) {
+    if(mouseMode == eRDownMove) {
         QPoint newpos = event->pos();
         QPoint dif = newpos-oldMousePt;
         left -= (right-left) * double(dif.x()) / double(width());
@@ -110,19 +112,25 @@ void MandelBrotView::mouseMoveEvent(QMouseEvent *event)
         bottom += (top-bottom) * double(dif.y()) / double(height());
         oldMousePt = newpos;
         //recal();
-        render->move_window(dif.x(), dif.y(), top, left, bottom, right);
+        render->moveProcess(dif.x(), dif.y(), top, left, bottom, right);
         updateContents();
-    } else if(mouseMode == 2) {
+    } else {
         mouseX = event->pos().x();
         mouseY = event->pos().y();
-        emit number_chosen(Complex(left+(right-left)*double(event->pos().x())/double(width()),
-                                  bottom+(top-bottom)*double(height()-event->pos().y())/double(height())));
+        Complex pt(left+(right-left)*double(event->pos().x())/double(width()),
+                   bottom+(top-bottom)*double(height()-event->pos().y())/double(height()));
+        if(mouseMode == eLDownJulia) {
+            emit juliaPointChanged(pt);
+        }
+        if(!isJulia) {
+            emit mandelPointChanged(pt);
+        }
     }
 }
 
 void MandelBrotView::mouseReleaseEvent(QMouseEvent *)
 {
-    mouseMode = 0;
+    mouseMode = eDownNone;
 }
 
 void MandelBrotView::wheelEvent(QWheelEvent* event)
@@ -138,21 +146,21 @@ void MandelBrotView::wheelEvent(QWheelEvent* event)
         right = left+nw;
         bottom = zwy-(nh*(zwy-bottom) / (top-bottom));
         top = bottom + nh;
-        recal();
+        recalcAll();
     }
 }
 
-void MandelBrotView::set_julia_number(Complex newnum)
+void MandelBrotView::setJuliaPoint(Complex newnum)
 {
     juliaPoint = newnum;
-    recal();
+    recalcAll();
 }
 
-void MandelBrotView::mod_changed(int newmod)
+void MandelBrotView::intervalChanged(int newmod)
 {
 
 }
-void MandelBrotView::recal()
+void MandelBrotView::recalcAll()
 {
     if(isJulia) {
         render->renderJulia(juliaPoint, left, top, right, bottom);
@@ -160,20 +168,6 @@ void MandelBrotView::recal()
         render->renderMandelbrot(left, top, right, bottom);
     }
     updateContents();
-    /*
-    QImage * zw = render->export_picture();
-    QPixmap map = QPixmap::fromImage(*zw);
-
-    if(isJulia) {
-        QPainter *painter = new QPainter(&map);
-        QFont font("", 12); // arbitrary (default) font, size 2
-        painter->setFont(font);
-        painter->drawText(QPointF(30,30), QString("(%1, %2)").arg(julia_value.r).arg(julia_value.i));
-        painter->end();
-    }
-    // ui->m_picture->setPixmap(map);
-    delete zw;
-    */
 }
 
 void MandelBrotView::updateContents()
@@ -202,6 +196,23 @@ void MandelBrotView::updateContents()
     drawImage = new QImage(*image);
     mutexDraw.unlock();
     update();
+}
+
+void MandelBrotView::reset()
+{
+    if(isJulia) {
+        left = INIT_LEFT_JULIA;
+        right = INIT_RIGHT_JULIA;
+        top = INIT_TOP_JULIA;
+        bottom = INIT_BOTTOM_JULIA;
+    }
+    else {
+        left = INIT_LEFT;
+        right = INIT_RIGHT;
+        top = INIT_TOP;
+        bottom = INIT_BOTTOM;
+    }
+    recalcAll();
 }
 #else
 
@@ -245,7 +256,7 @@ void MandelBrotView::Update(const uchar *img, int w, int h, int sz, const std::v
 }
 #endif//_DEV_VER101
 
-void MandelBrotView::UpdatePalette(const std::vector<QColor> &table)
+void MandelBrotView::updatePalette(const std::vector<QColor> &table)
 {
     qDebug()<<"Updating palette...";
 #if _DEV_VER101

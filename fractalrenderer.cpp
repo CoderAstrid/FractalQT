@@ -1,7 +1,9 @@
 #include "fractalrenderer.h"
 #include <complex>
 
-#include <QDebug>
+#if _DEV_QT
+#   include <QDebug>
+#endif//_DEV_QT
 
 static int sign(int x)
 {
@@ -12,15 +14,16 @@ FractalRenderer::FractalRenderer(int _w, int _h)
     : QObject()
     , width(_w)
     , height(_h)
-    , imageData(nullptr)
+    , imageData(NULL_ADD)
     , widthEx(0)
-    , alivedThreads(0)
-    , drawingFinished(false)
-    , isStopped(false)
 #if _DEV_VER101
     , maxWidth(_w)
     , maxHeight(_h)
     , maxInterval(256)
+#else
+    , alivedThreads(0)
+    , drawingFinished(false)
+    , isStopped(false)
 #endif//_DEV_VER101
 {
 #if _DEV_VER101
@@ -37,10 +40,178 @@ FractalRenderer::~FractalRenderer()
 {
     if(imageData) {
         delete[] imageData;
-        imageData = nullptr;
+        imageData = NULL_ADD;
     }
 }
 
+#if _DEV_VER101
+void FractalRenderer::moveProcess(int dx, int dy, double y0, double x0, double y1, double x1)
+{
+    if(!imageData)
+        return;
+    bool is_julia = (lastPoint.real() != -100);
+    if(dx == 0 && dy == 0) {
+        return;
+    }
+    int px = 0, py = 0;
+    if(dx > 0) {
+        px = width-1;
+    }
+    if(dy > 0) {
+        py = height-1;
+    }
+    px -= dx;
+    py -= dy;
+    int sx = px;
+
+    int xstep = -sign(dx);
+    if(xstep == 0) {
+        xstep = 1;
+    }
+    int ystep = -sign(dy);
+    if(ystep == 0) {
+        ystep = 1;
+    }
+    while(py+dy >= 0 && py+dy < height && py >= 0 && py <height) {
+        px = sx;
+        IndexOfPt* line = imageData + py * widthEx;
+        IndexOfPt* lineMove = imageData + (py + dy) * widthEx;
+        while(px+dx >= 0 && px+dx < width && px >= 0 && px < width) {
+            lineMove[px+dx] = line[px];
+            px += xstep;
+        }
+        py += ystep;
+    }
+
+    Complex keyPt = Complex(x0,y0);
+    double realDx = (x1-x0)/double(width);
+    double realDy = (y1-y0)/double(height);
+    int sy = 0, ey = height;
+    if(dy < 0) {
+        py = height-1;
+    } else {
+        py = 0;
+    }
+    int yLimit = py+dy;
+    if(yLimit < py) {
+        ey = yLimit;
+        int zw = py;
+        py = yLimit;
+        yLimit = zw;
+    } else {
+        sy = yLimit;
+    }
+    if(dy) {
+#pragma omp parallel for
+        for(int y = py;y<yLimit;y++) {
+            IndexOfPt* line = imageData + widthEx * y;
+            for(int x = 0;x<width;x++) {
+                int res = 0;
+                if(!is_julia) {
+                    res =  calcPoint(Complex(0,0), keyPt + Complex(x*realDx, y*realDy));
+                } else {
+                    res = calcPoint(keyPt+Complex(x*realDx,y*realDy), lastPoint);
+                }
+                line[x] = res;
+            }
+        }
+    }
+    if(dx < 0) {
+        px = width-1;
+    } else {
+        px = 0;
+    }
+    int xLimit = px + dx;
+    if(xLimit < px) {
+        int zw = px;
+        px = xLimit;
+        xLimit = zw;
+    }
+    if(dx) {
+#pragma omp parallel for
+        for(int y = sy;y<ey;y++) {
+            IndexOfPt* line = imageData + y * widthEx;
+            for(int x = px;x<xLimit;x++) {
+                int res = 0;
+                if(!is_julia) {
+                    res =  calcPoint(Complex(0,0), keyPt+Complex(x*realDx,y*realDy));
+                } else {
+                    res = calcPoint(keyPt+Complex(x*realDx,y*realDy), lastPoint);
+                }
+                line[x] = res;
+            }
+        }
+    }
+}
+
+void FractalRenderer::resize(int newx, int newy)
+{
+    if(newx > 0 && newy > 0 && (newx != width || newy != height)) {       
+        width = newx; height = newy;
+        widthEx = ((((width * 8) + 31) & ~31) >> 3);
+        if(imageData) {
+            delete[] imageData;
+        }
+        imageData = new IndexOfPt[widthEx * height];
+    }
+}
+
+inline int FractalRenderer::calcPoint(Complex start, Complex c) const
+{
+    Complex z = start;
+    for(int i = 0;i<MAX_INTERATION;i++) {
+        z = z*z+c;
+        if(abs(z) > 1000) {
+            return i;
+        }
+    }
+    return MAX_INTERATION;
+}
+
+inline Complex FractalRenderer::mandelFunc(Complex z, Complex c) const
+{
+    return z * z + c;
+}
+
+void FractalRenderer::renderMandelbrot(double left, double top, double right, double bottom)
+{
+    if(!imageData)
+        return;
+    lastPoint = Complex(-100, -100);
+    Complex rangeul = Complex(left, top);
+    double xinterval = (right-left) / double(width);
+    double yinterval = (bottom-top) / double(height);
+#pragma omp parallel for
+    for(int y = 0;y<height;y++) {
+        for(int x = 0;x<width;x++) {
+            int res = calcPoint(Complex(0,0), rangeul+Complex(x*xinterval, y*yinterval));
+            imageData[y * widthEx + x] = res;
+        }
+    }
+}
+
+void FractalRenderer::renderJulia(Complex c, double left, double top, double right, double bottom)
+{
+    if(!imageData)
+        return;
+    lastPoint = c;
+    Complex rangeul = Complex(left, top);
+    double xinterval = (right-left) / double(width);
+    double yinterval = (bottom-top) / double(height);
+#pragma omp parallel for
+    for(int y = 0;y<height;y++) {
+        for(int x = 0;x<width;x++) {
+            int res = calcPoint(rangeul + Complex(x*xinterval, y*yinterval), c);
+            imageData[y * widthEx + x] = res;
+        }
+    }
+}
+
+void FractalRenderer::renderMandelbrot()
+{
+    renderMandelbrot(INIT_LEFT, INIT_TOP, INIT_RIGHT, INIT_BOTTOM);
+}
+#else
 bool FractalRenderer::setDimensions(int _w, int _h)
 {
     bool change = false;
@@ -151,173 +322,6 @@ void FractalRenderer::stop()
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-}
-#if _DEV_VER101
-void FractalRenderer::move_window(int xmove, int ymove, double top, double left, double bottom, double right)
-{
-    if(!imageData)
-        return;
-    bool is_julia = (lastPoint.real() != -100);
-    if(xmove == 0 && ymove == 0) {
-        return;
-    }
-    int posx = 0,posy = 0;
-    if(xmove > 0) {
-        posx = width-1;
-    }
-    if(ymove > 0) {
-        posy = height-1;
-    }
-    posx -= xmove;
-    posy -= ymove;
-    int startx = posx;
-
-    int xstep = -sign(xmove);
-    if(xstep == 0) {
-        xstep = 1;
-    }
-    int ystep = -sign(ymove);
-    if(ystep == 0) {
-        ystep = 1;
-    }
-    while(posy+ymove >= 0 && posy+ymove < height && posy >= 0 && posy <height) {
-        posx = startx;
-        IndexOfPt* line = imageData + posy * widthEx;
-        IndexOfPt* lineMove = imageData + (posy + ymove) * widthEx;
-        while(posx+xmove >= 0 && posx+xmove < width && posx >= 0 && posx < width) {
-            lineMove[posx+xmove] = line[posx];
-            posx += xstep;
-        }
-        posy += ystep;
-    }
-
-    Complex rangeul = Complex(left,top);
-    double xinterval = (right-left)/double(width);
-    double yinterval = (bottom-top)/double(height);
-    int ystart = 0,yend = height;
-    if(ymove < 0) {
-        posy = height-1;
-    } else {
-        posy = 0;
-    }
-    int ylimit = posy+ymove;
-    if(ylimit < posy) {
-        yend = ylimit;
-        int zw = posy;
-        posy = ylimit;
-        ylimit = zw;
-    } else {
-        ystart = ylimit;
-    }
-    if(ymove) {
-#pragma omp parallel for
-        for(int y = posy;y<ylimit;y++) {
-            IndexOfPt* line = imageData + widthEx * y;
-            for(int x = 0;x<width;x++) {
-                int res = 0;
-                if(!is_julia) {
-                    res =  calcPoint(Complex(0,0),rangeul+Complex(x*xinterval,y*yinterval));
-                } else {
-                    res = calcPoint(rangeul+Complex(x*xinterval,y*yinterval),lastPoint);
-                }
-                line[x] = res;
-            }
-        }
-    }
-    if(xmove < 0) {
-        posx = width-1;
-    } else {
-        posx = 0;
-    }
-    int xlimit = posx + xmove;
-    if(xlimit < posx) {
-        int zw = posx;
-        posx = xlimit;
-        xlimit = zw;
-    }
-    if(xmove) {
-#pragma omp parallel for
-        for(int y = ystart;y<yend;y++) {
-            IndexOfPt* line = imageData + y * widthEx;
-            for(int x = posx;x<xlimit;x++) {
-                int res = 0;
-                if(!is_julia) {
-                    res =  calcPoint(Complex(0,0),rangeul+Complex(x*xinterval,y*yinterval));
-                } else {
-                    res = calcPoint(rangeul+Complex(x*xinterval,y*yinterval),lastPoint);
-                }
-                line[x] = res;
-            }
-        }
-    }
-}
-
-void FractalRenderer::resize(int newx, int newy)
-{
-    if(newx > 0 && newy > 0 && (newx != width || newy != height)) {       
-        width = newx; height = newy;
-        widthEx = ((((width * 8) + 31) & ~31) >> 3);
-        if(imageData) {
-            delete[] imageData;
-        }
-        imageData = new IndexOfPt[widthEx * height];
-    }
-}
-
-inline int FractalRenderer::calcPoint(Complex start, Complex point) const
-{
-    Complex akt = start;
-    for(uint i = 0;i<MAX_INTERATION;i++) {
-        akt = akt*akt+point;
-        if(abs(akt) > 1000) {
-            return i;
-        }
-    }
-    return MAX_INTERATION;
-}
-
-inline Complex FractalRenderer::mandelFunc(Complex z, Complex c) const
-{
-    return z * z + c;
-}
-
-void FractalRenderer::renderMandelbrot(double left, double top, double right, double bottom)
-{
-    if(!imageData)
-        return;
-    lastPoint = Complex(-100, -100);
-    Complex rangeul = Complex(left, top);
-    double xinterval = (right-left) / double(width);
-    double yinterval = (bottom-top) / double(height);
-#pragma omp parallel for
-    for(int y = 0;y<height;y++) {
-        for(int x = 0;x<width;x++) {
-            int res = calcPoint(Complex(0,0), rangeul+Complex(x*xinterval, y*yinterval));
-            imageData[y * widthEx + x] = res;
-        }
-    }
-}
-
-void FractalRenderer::renderJulia(Complex c, double left, double top, double right, double bottom)
-{
-    if(!imageData)
-        return;
-    lastPoint = c;
-    Complex rangeul = Complex(left, top);
-    double xinterval = (right-left) / double(width);
-    double yinterval = (bottom-top) / double(height);
-#pragma omp parallel for
-    for(int y = 0;y<height;y++) {
-        for(int x = 0;x<width;x++) {
-            int res = calcPoint(rangeul + Complex(x*xinterval, y*yinterval), c);
-            imageData[y * widthEx + x] = res;
-        }
-    }
-}
-
-void FractalRenderer::renderMandelbrot()
-{
-    renderMandelbrot(INIT_LEFT, INIT_TOP, INIT_RIGHT, INIT_BOTTOM);
 }
 #endif//_DEV_VER101
 //EOF

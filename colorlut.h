@@ -1,8 +1,8 @@
 #ifndef COLORLUT_H
 #define COLORLUT_H
-#include <QColor>
+
+#include "common_type.h"
 #include <vector>
-#include <QString>
 
 typedef enum E_PALETTE{
     ePalGray,
@@ -10,7 +10,7 @@ typedef enum E_PALETTE{
     eCntPalette
 }Palette;
 
-const QString NAMES_PALETTE[eCntPalette] = {
+const SVString NAMES_PALETTE[eCntPalette] = {
     "Gray Palette", "Height-Map Palette"
 };
 
@@ -27,13 +27,13 @@ public:
     {
         return PaletteTable.at(idx).rgba();
     }
-    const std::vector<QColor>& table() const
+    const std::vector<SVColor>& table() const
     {
         return PaletteTable;
     }
 private:
     int Size;
-    std::vector<QColor> PaletteTable;
+    std::vector<SVColor> PaletteTable;
 };
 
 #endif // COLORLUT_H
