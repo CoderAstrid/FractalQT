@@ -49,6 +49,8 @@ public:
     {
         maxInterval = newInt;
     }
+    void renderMandelbrot(double left, double top, double right, double bottom);
+    void renderJulia(Complex c, double left, double top, double right, double bottom);
 #endif//_DEV_VER101
 private:    
     int             width;    
@@ -75,8 +77,7 @@ private:
 #if _DEV_VER101
     int calcPoint(Complex start, Complex point) const;
     Complex mandelFunc(Complex z, Complex c) const;
-    void renderMandelbrot(double left, double top, double right, double bottom);
-    void renderJulia(Complex c, double left, double top, double right, double bottom);
+
 #endif//_DEV_VER101
 signals:
     void doneUpdate();

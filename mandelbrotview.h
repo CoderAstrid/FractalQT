@@ -21,13 +21,20 @@ public:
     virtual void mouseMoveEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void wheelEvent(QWheelEvent*);
-#endif//_DEV_VER101
 
+    void setJuliaView(bool mode)
+    {
+        isJulia = mode;
+    }
+#else
     // main public functions
     void setRender(FractalRenderer* _render);
     void UpdateMandel(const std::vector<QColor>& table);
     void Update(const uchar* img, int w, int h, int sz, const std::vector<QColor>& table);
+#endif//_DEV_VER101
     void UpdatePalette(const std::vector<QColor>& table);
+
+    /* ------------------- new updating ------------------- */
 #if _DEV_VER101
 public slots:
     void set_julia_number(Complex newnum);
@@ -35,7 +42,9 @@ public slots:
 
 signals:
     void number_chosen(Complex newnum);
+    /* ------------------- new updating ------------------- */
 #endif//_DEV_VER101
+
 private:
     // for painting
     QImage              *image;
@@ -48,19 +57,22 @@ private:
 #endif//_DEV_VER101
 
     // for drawing
-    QMutex              mutexDraw;
-    QPoint              oldMousePt;
 #if _DEV_VER101
     bool                isMouseLButton;
     int                 mouseMode;
     int                 mouseX;
     int                 mouseY;
+#else
+    QMutex              mutexDraw;
 #endif//_DEV_VER101
+    QPoint              oldMousePt;
 
     // for julia set
     bool                isJulia;
 #if _DEV_VER101
     Complex             juliaPoint;
+
+    void recal();
 #endif//_DEV_VER101
 };
 

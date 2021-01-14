@@ -120,13 +120,19 @@
        <layout class="QVBoxLayout" name="vlJulia">
         <item>
          <widget class="QLabel" name="lblJulia">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>200</height>
+           </size>
+          </property>
           <property name="text">
            <string>Julia Set:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QGraphicsView" name="gvJulia"/>
+         <widget class="MandelBrotView" name="gvJulia" native="true"/>
         </item>
        </layout>
       </item>
@@ -140,12 +146,12 @@
   <customwidget>
    <class>MandelBrotView</class>
    <extends>QWidget</extends>
-   <header>mandelbrotview.h</header>
+   <header location="global">mandelbrotview.h</header>
   </customwidget>
   <customwidget>
    <class>CustomSlider</class>
    <extends>QSlider</extends>
-   <header location="global">custom_ctrl/customslider.h</header>
+   <header>custom_ctrl/customslider.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

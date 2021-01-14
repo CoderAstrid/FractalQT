@@ -1,12 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include "devMacro.h"
 #include <QMainWindow>
 #include <QPainter>
 #include <QtDebug>
 #include <QTimer>
-#include "fractalrenderer.h"
+
 #include "colorlut.h"
+#if _DEV_VER101
+#else
+#include "fractalrenderer.h"
+#endif//_DEV_VER101
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,20 +27,22 @@ public:
     virtual void paintEvent(QPaintEvent *event);
     virtual void resizeEvent(QResizeEvent *event);
 private:
-//    QColor value(int x, int y);
     void updatePalette();
     void initialize_color();
 public slots:
     void onChangedPalette(int newPalette);
     void onChangedCount(int newCountOfColor);
-
+#if _DEV_VER101
+#else
     void onDoneUpdate();
+#endif//_DEV_VER101
 private:
-    Ui::MainWindow *ui;
-    unsigned rMult, gMult, bMult;
+    Ui::MainWindow *ui;    
+#if _DEV_VER101
+#else
     FractalRenderer mandelbrot;
+#endif//_DEV_VER101
     ColorLut        colorTable;
-//    QTimer *updateTimer;
     bool            isStarted;
 };
 #endif // MAINWINDOW_H

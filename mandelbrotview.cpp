@@ -22,6 +22,7 @@ MandelBrotView::MandelBrotView(QWidget *parent)
     , isJulia(false)
 {
 #if _DEV_VER101
+    render = new FractalRenderer(width(), height());
     juliaPoint.real(-1);
     juliaPoint.imag(0);
 #endif//_DEV_VER101
@@ -45,6 +46,8 @@ void MandelBrotView::paintEvent(QPaintEvent * /*event*/)
     QPainter painter(this);
 
     qDebug() << "Pained View" << width() << height();
+#if _DEV_VER101
+#else
     mutexDraw.lock();
     if(drawImage)
         painter.drawImage(QPoint(0,0), *drawImage);
@@ -53,27 +56,83 @@ void MandelBrotView::paintEvent(QPaintEvent * /*event*/)
         QRect rc(oldMousePt.x()-3,oldMousePt.y()-3,6,6);
         painter.drawRect(rc);
     }
+#endif//_DEV_VER101
 }
 
 void MandelBrotView::resizeEvent(QResizeEvent * /*event*/)
 {
     int w = width();
     int h = height();
+#if _DEV_VER101
+#else
     if(render && render->setDimensions(w, h)) {
         render->runRenderer(std::thread::hardware_concurrency());
     }
+#endif//_DEV_VER101
 }
 
 void MandelBrotView::mousePressEvent(QMouseEvent *event)
 {
     QPoint pos = event->pos();
+#if _DEV_VER101
+#else
     isJulia = true;
     oldMousePt = pos;
     if(render) {
         render->updateJulia(pos.x(), pos.y());
     }
     update();
+#endif//_DEV_VER101
 }
+
+#if _DEV_VER101
+void MandelBrotView::mouseMoveEvent(QMouseEvent *)
+{
+
+}
+
+void MandelBrotView::mouseReleaseEvent(QMouseEvent *)
+{
+
+}
+
+void MandelBrotView::wheelEvent(QWheelEvent*)
+{
+
+}
+
+void MandelBrotView::set_julia_number(Complex newnum)
+{
+
+}
+
+void MandelBrotView::mod_changed(int newmod)
+{
+
+}
+void MandelBrotView::recal()
+{
+    if(isJulia) {
+        render->renderJulia(juliaPoint, top, left, bottom, right);
+    } else {
+        render->renderMandelbrot(top, left, bottom, right);
+    }
+    /*
+    QImage * zw = render->export_picture();
+    QPixmap map = QPixmap::fromImage(*zw);
+
+    if(isJulia) {
+        QPainter *painter = new QPainter(&map);
+        QFont font("", 12); // arbitrary (default) font, size 2
+        painter->setFont(font);
+        painter->drawText(QPointF(30,30), QString("(%1, %2)").arg(julia_value.r).arg(julia_value.i));
+        painter->end();
+    }
+    // ui->m_picture->setPixmap(map);
+    delete zw;
+    */
+}
+#else
 
 void MandelBrotView::setRender(FractalRenderer *_render)
 {
@@ -113,6 +172,7 @@ void MandelBrotView::Update(const uchar *img, int w, int h, int sz, const std::v
 
     update();
 }
+#endif//_DEV_VER101
 
 void MandelBrotView::UpdatePalette(const std::vector<QColor> &table)
 {

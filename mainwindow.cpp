@@ -15,12 +15,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
 
-    //for(int i = 0; i < eCntPalette; i++)
-    //    ui->cbPalette->addItem(NAMES_PALETTE[i]);
-
+#if _DEV_VER101
+    ui->gvJulia->setJuliaView(true);
+    connect(ui->gvMandel, SIGNAL(number_chosen(Complex)), ui->gvJulia, SLOT(set_julia_number(Complex)));
+#else
     ui->gvMandel->setRender(&mandelbrot);
-
     connect(&mandelbrot, SIGNAL(doneUpdate()), this, SLOT(onDoneUpdate()));
+#endif//_DEV_VER101
 }
 
 MainWindow::~MainWindow()
@@ -83,11 +84,13 @@ void MainWindow::initialize_color()
         ui->cbPalette->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     }
 }
-
+#if _DEV_VER101
+#else
 void MainWindow::onDoneUpdate()
 {
     ui->gvMandel->UpdateMandel(colorTable.table());
 
     qDebug()<<"Finished from Thread";
 }
+#endif//_DEV_VER101
 //EOF
