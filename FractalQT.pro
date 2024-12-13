@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,6 +19,7 @@ SOURCES += \
     colorlut.cpp \
     custom_ctrl/customslider.cpp \
     fractalrenderer.cpp \
+    fractalworker.cpp \
     main.cpp \
     mainwindow.cpp \
     mandelbrotview.cpp
@@ -29,6 +30,7 @@ HEADERS += \
     custom_ctrl/customslider.h \
     devMacro.h \
     fractalrenderer.h \
+    fractalworker.h \
     mainwindow.h \
     mandelbrotview.h
 

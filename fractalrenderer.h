@@ -3,18 +3,11 @@
 
 #include "common_type.h"
 #include <vector>
-#if _DEV_VER101
-#else
-#   include <chrono>
-#   include <mutex>
-#   include <thread>
-#endif//_DEV_VER101
-
 #include <QObject>
 
-const unsigned int PALATE_SIZE = 256;
+
 const int PALETE_STEP = 5;
-const int MAX_INTERATION = 250;
+const int MAX_INTERATION = 255;
 
 const double INIT_LEFT = -3.0f;
 const double INIT_TOP = -2.0f;
@@ -47,7 +40,6 @@ public:
         return widthEx * height;
     }
 
-#if _DEV_VER101
     void renderMandelbrot();
     void moveProcess(int dx, int dy, double top, double left, double down, double right);
     void resize(int _w, int _h);
@@ -56,23 +48,12 @@ public:
         maxInterval = newInt;
     }
     void renderMandelbrot(double left, double top, double right, double bottom);
+    void renderMandelbrotMultithreaded(double left, double top, double right, double bottom);
     void renderJulia(Complex c, double left, double top, double right, double bottom);
-#else
-    bool setDimensions(int x, int y);
 
-    bool isFinished() const
-    {
-        return drawingFinished;
-    }
-    void updateJulia(int x, int y);
-
-    void stop();
-    void runRenderer(unsigned threads);
-#endif//_DEV_VER101
 private:    
     int             width;    
     int             height;
-#if _DEV_VER101
     int             maxWidth;
     int             maxHeight;
     int             maxInterval;
@@ -80,23 +61,13 @@ private:
 
     int             calcPoint(Complex start, Complex point) const;
     Complex         mandelFunc(Complex z, Complex c) const;
-#else
-    unsigned        alivedThreads;
-    std::mutex      lock;
-    std::chrono::milliseconds renderStartTime;
-    bool            drawingFinished;
-    bool            isStopped;
-
-    unsigned char   value(int x, int y);
-    void            render(int widthFrom, int widthTo);
-#endif//_DEV_VER101
+    int calcPointHelper(bool isJulia, const Complex& keyPt, const Complex& lastPoint,
+                                         int x, int y, double realDx, double realDy);
     int             widthEx;
     IndexOfPt       *imageData;
 #if _DEV_QT
-#   if _DEV_VER101
 signals:
     void doneUpdate();
-#   endif//_DEV_VER101
 #endif//_DEV_QT
 };
 

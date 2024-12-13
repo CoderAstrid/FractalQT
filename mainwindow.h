@@ -7,10 +7,6 @@
 #include <QTimer>
 
 #include "colorlut.h"
-#if _DEV_VER101
-#else
-#   include "fractalrenderer.h"
-#endif//_DEV_VER101
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,18 +29,10 @@ public slots:
     void onChangedPalette(int newPalette);
     void onChangedCount(int newCountOfColor);
     void on_cmdReset_clicked();
-#if _DEV_VER101
     void onChangedMandelPt(Complex);
-#else
-    void onDoneUpdate();
-#endif//_DEV_VER101
 private:
-    Ui::MainWindow *ui;    
-#if _DEV_VER101
-#else
-    FractalRenderer mandelbrot;
-#endif//_DEV_VER101
-    ColorLut        colorTable;
+    Ui::MainWindow *ui;
+    std::vector<ColorLut>        colorTable;
     bool            isStarted;
 };
 #endif // MAINWINDOW_H

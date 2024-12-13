@@ -19,4 +19,6 @@
 #endif
 typedef std::complex<double>        Complex;
 typedef unsigned char               IndexOfPt;
+
+const unsigned int PALATE_SIZE = 256;
 #endif // COMMON_TYPE_H
