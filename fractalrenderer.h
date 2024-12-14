@@ -47,10 +47,10 @@ public:
     {
         maxInterval = newInt;
     }
-    void renderMandelbrot(double left, double top, double right, double bottom);
+//    void renderMandelbrot(double left, double top, double right, double bottom);
     void renderMandelbrotMultithreaded(double left, double top, double right, double bottom);
     void renderJulia(Complex c, double left, double top, double right, double bottom);
-
+    void setJulia(bool mode) { isJulia = mode; }
 private:    
     int             width;    
     int             height;
@@ -59,12 +59,9 @@ private:
     int             maxInterval;
     Complex         lastPoint;
 
-    int             calcPoint(Complex start, Complex point) const;
-    Complex         mandelFunc(Complex z, Complex c) const;
-    int calcPointHelper(bool isJulia, const Complex& keyPt, const Complex& lastPoint,
-                                         int x, int y, double realDx, double realDy);
     int             widthEx;
     IndexOfPt       *imageData;
+    bool            isJulia;
 #if _DEV_QT
 signals:
     void doneUpdate();

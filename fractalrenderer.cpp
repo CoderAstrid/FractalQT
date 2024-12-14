@@ -1,6 +1,7 @@
 #include "fractalrenderer.h"
 #include <complex>
 #include <QThreadPool>
+#include <QObject>
 #include "fractalworker.h"
 
 #if _DEV_QT
@@ -24,6 +25,7 @@ FractalRenderer::FractalRenderer(int _w, int _h)
 {
     lastPoint.real(-100);
     lastPoint.imag(-100);
+    isJulia = false;
     resize(_w, _h);
 }
 
@@ -42,12 +44,12 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
     bool isJulia = (lastPoint.real() != -100);
     if (dx == 0 && dy == 0) return;
 
-    Complex keyPt(newLeft, newTop);
     double realDx = (newRight - newLeft) / double(width);
     double realDy = (newBottom - newTop) / double(height);
 
-    // Temporary buffer to safely move pixels
-    std::vector<IndexOfPt> tempImage(widthEx * height);
+    // Temporary buffer for pixel movement
+    std::vector<IndexOfPt> tempImage(widthEx * height, 0);
+
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int srcX = x - dx;
@@ -59,48 +61,26 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
     }
     memcpy(imageData, tempImage.data(), widthEx * height * sizeof(IndexOfPt));
 
-    // Update missing rows (vertical movement)
-    if (dy != 0) {
-        int startY = (dy > 0) ? 0 : height + dy;
-        int endY = (dy > 0) ? dy : height;
+    // Recalculate missing areas
+    QThreadPool* threadPool = QThreadPool::globalInstance();
+    int threadCount = QThread::idealThreadCount();
+    int rowsPerThread = (height + threadCount - 1) / threadCount; // Divide evenly
 
-#pragma omp parallel for schedule(dynamic, 16)
-        for (int y = startY; y < endY; y++) {
-            IndexOfPt* line = imageData + y * widthEx;
-#pragma omp simd
-            for (int x = 0; x < width; x++) {
-                line[x] = calcPointHelper(isJulia, keyPt, lastPoint, x, y, realDx, realDy);
-            }
-        }
+    for (int i = 0; i < threadCount; ++i) {
+        int threadStartY = i * rowsPerThread;
+        int threadEndY = std::min((i + 1) * rowsPerThread, height); // Avoid overflo
+
+        FractalWorker* worker = new FractalWorker(
+            threadStartY, threadEndY, newLeft, newTop, realDx, realDy,
+            width, height, maxInterval, imageData, isJulia, lastPoint);
+
+        worker->setAutoDelete(true);
+        threadPool->start(worker);
     }
 
-    // Update missing columns (horizontal movement)
-    if (dx != 0) {
-        int startX = (dx > 0) ? 0 : width + dx;
-        int endX = (dx > 0) ? dx : width;
-
-#pragma omp parallel for schedule(dynamic, 16)
-        for (int y = 0; y < height; y++) {
-            IndexOfPt* line = imageData + y * widthEx;
-#pragma omp simd
-            for (int x = startX; x < endX; x++) {
-                line[x] = calcPointHelper(isJulia, keyPt, lastPoint, x, y, realDx, realDy);
-            }
-        }
-    }
+    threadPool->waitForDone();
 }
 
-int FractalRenderer::calcPointHelper(bool isJulia, const Complex& keyPt, const Complex& lastPoint,
-                                     int x, int y, double realDx, double realDy)
-{
-    double real = keyPt.real() + x * realDx;
-    double imag = keyPt.imag() + y * realDy;
-    if (isJulia) {
-        return calcPoint(Complex(real, imag), lastPoint);
-    } else {
-        return calcPoint(Complex(0, 0), Complex(real, imag));
-    }
-}
 
 void FractalRenderer::resize(int newx, int newy)
 {
@@ -116,41 +96,6 @@ void FractalRenderer::resize(int newx, int newy)
     }
 }
 
-inline int FractalRenderer::calcPoint(Complex start, Complex c) const
-{
-    Complex z = start;
-    for(int i = 0;i<MAX_INTERATION;i++) {
-        z = z*z+c;
-        if(abs(z) > 1000) {
-            return i;
-        }
-    }
-    return MAX_INTERATION;
-}
-
-inline Complex FractalRenderer::mandelFunc(Complex z, Complex c) const
-{
-    return z * z + c;
-}
-
-void FractalRenderer::renderMandelbrot(double left, double top, double right, double bottom)
-{
-    if(!imageData)
-        return;
-    lastPoint = Complex(-100, -100);
-    Complex rangeul = Complex(left, top);
-    double xinterval = (right-left) / double(width);
-    double yinterval = (bottom-top) / double(height);
-#pragma omp parallel for
-    for(int y = 0;y<height;y++) {
-        IndexOfPt* line = imageData + y * widthEx;
-        for(int x = 0;x<width;x++) {
-            int res = calcPoint(Complex(0,0), rangeul+Complex(x*xinterval, y*yinterval));
-            line[x] = res;
-        }
-    }
-}
-
 void FractalRenderer::renderMandelbrotMultithreaded(double left, double top, double right, double bottom)
 {
     if (!imageData) {
@@ -158,19 +103,25 @@ void FractalRenderer::renderMandelbrotMultithreaded(double left, double top, dou
         return;
     }
 
+    double zoomLevel = std::log2(1.0 / (right - left));
+    int maxIteration = std::min(255 + int(zoomLevel * 50), 2000); // Adjust dynamically
+    if(maxIteration <= MAX_INTERATION)
+        maxIteration = MAX_INTERATION;
+
     QThreadPool* threadPool = QThreadPool::globalInstance();
     int threadCount = QThread::idealThreadCount(); // Number of threads
-    int rowsPerThread = height / threadCount;
+    int rowsPerThread = (height + threadCount - 1) / threadCount; // Divide evenly
 
     double xInterval = (right - left) / width;
     double yInterval = (bottom - top) / height;
 
     for (int i = 0; i < threadCount; ++i) {
         int startY = i * rowsPerThread;
-        int endY = (i == threadCount - 1) ? height : startY + rowsPerThread;
+        int endY = std::min((i + 1) * rowsPerThread, height); // Avoid overflow
 
         FractalWorker* worker = new FractalWorker(startY, endY, left, top, xInterval, yInterval,
-                                                  width, height, MAX_INTERATION, imageData);
+                                                  width, height, maxIteration, imageData, false, Complex(0,0));
+        worker->setAutoDelete(true);
         threadPool->start(worker); // Start the worker
     }
 
@@ -180,20 +131,42 @@ void FractalRenderer::renderMandelbrotMultithreaded(double left, double top, dou
 
 void FractalRenderer::renderJulia(Complex c, double left, double top, double right, double bottom)
 {
-    if(!imageData)
+    if (!imageData) {
+        qDebug() << "Error: imageData is null!";
         return;
-    lastPoint = c;
-    Complex rangeul = Complex(left, top);
-    double xinterval = (right-left) / double(width);
-    double yinterval = (bottom-top) / double(height);
-#pragma omp parallel for
-    for(int y = 0;y<height;y++) {
-        IndexOfPt* line = imageData + y * widthEx;
-        for(int x = 0;x<width;x++) {
-            int res = calcPoint(rangeul + Complex(x*xinterval, y*yinterval), c);
-            line[x] = res;
-        }
     }
+
+    lastPoint = c; // Store the Julia set parameter
+    isJulia = true; // Indicate that we are rendering a Julia set
+
+    // Dynamically adjust MAX_ITERATION based on zoom level
+    double zoomLevel = std::log2(1.0 / (right - left));
+    int maxIteration = std::min(255 + int(zoomLevel * 50), 2000); // Adjust dynamically
+    if (maxIteration <= MAX_INTERATION)
+        maxIteration = MAX_INTERATION;
+
+    QThreadPool* threadPool = QThreadPool::globalInstance();
+    int threadCount = QThread::idealThreadCount(); // Number of threads
+    int rowsPerThread = (height + threadCount - 1) / threadCount; // Divide evenly
+
+    double xInterval = (right - left) / width;
+    double yInterval = (bottom - top) / height;
+
+    for (int i = 0; i < threadCount; ++i) {
+        int startY = i * rowsPerThread;
+        int endY = std::min((i + 1) * rowsPerThread, height); // Avoid overflow
+
+        FractalWorker* worker = new FractalWorker(
+            startY, endY, left, top, xInterval, yInterval,
+            width, height, maxIteration, imageData,
+            true, c); // Pass 'c' as both 'keyPt' and 'lastPoint'
+
+        worker->setAutoDelete(true); // Worker will be automatically deleted by QThreadPool
+        threadPool->start(worker);
+    }
+
+    threadPool->waitForDone(); // Wait for all threads to complete
+    qDebug() << "Julia set rendering completed.";
 }
 
 void FractalRenderer::renderMandelbrot()

@@ -32,7 +32,7 @@ public:
     void setJuliaView(bool mode)
     {
         isJulia = mode;
-
+        render->setJulia(mode);
         resize(width(), height());
     }
     void reset();
