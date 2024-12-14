@@ -41,7 +41,6 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
 {
     if (!imageData) return;
 
-    bool isJulia = (lastPoint.real() != -100);
     if (dx == 0 && dy == 0) return;
 
     double realDx = (newRight - newLeft) / double(width);
@@ -65,6 +64,11 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
     QThreadPool* threadPool = QThreadPool::globalInstance();
     int threadCount = QThread::idealThreadCount();
     int rowsPerThread = (height + threadCount - 1) / threadCount; // Divide evenly
+    double zoomLevel = std::log2(1.0 / (newRight - newLeft));
+
+    int maxIteration = std::min(255 + int(zoomLevel * 50), 2000); // Adjust dynamically
+    if(maxIteration <= MAX_INTERATION)
+        maxIteration = MAX_INTERATION;
 
     for (int i = 0; i < threadCount; ++i) {
         int threadStartY = i * rowsPerThread;
@@ -72,28 +76,13 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
 
         FractalWorker* worker = new FractalWorker(
             threadStartY, threadEndY, newLeft, newTop, realDx, realDy,
-            width, height, maxInterval, imageData, isJulia, lastPoint);
+            width, height, maxIteration, imageData, isJulia, lastPoint);
 
         worker->setAutoDelete(true);
         threadPool->start(worker);
     }
 
     threadPool->waitForDone();
-}
-
-
-void FractalRenderer::resize(int newx, int newy)
-{
-    if(newx > 0 && newy > 0 && (newx != width || newy != height)) {       
-        width = newx;
-        height = newy;
-
-        widthEx = ((((width * 8) + 31) & ~31) >> 3);
-        if(imageData) {
-            delete[] imageData;
-        }
-        imageData = new IndexOfPt[widthEx * height];
-    }
 }
 
 void FractalRenderer::renderMandelbrotMultithreaded(double left, double top, double right, double bottom)
@@ -127,6 +116,20 @@ void FractalRenderer::renderMandelbrotMultithreaded(double left, double top, dou
 
     threadPool->waitForDone(); // Wait for all threads to complete
     qDebug() << "Fractal rendering completed.";
+}
+
+void FractalRenderer::resize(int newx, int newy)
+{
+    if(newx > 0 && newy > 0 && (newx != width || newy != height)) {       
+        width = newx;
+        height = newy;
+
+        widthEx = ((((width * 8) + 31) & ~31) >> 3);
+        if(imageData) {
+            delete[] imageData;
+        }
+        imageData = new IndexOfPt[widthEx * height];
+    }
 }
 
 void FractalRenderer::renderJulia(Complex c, double left, double top, double right, double bottom)
