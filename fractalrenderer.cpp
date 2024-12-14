@@ -48,7 +48,16 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
 
     // Temporary buffer for pixel movement
     std::vector<IndexOfPt> tempImage(widthEx * height, 0);
-
+#pragma omp parallel for
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int srcX = x - dx;
+            int srcY = y - dy;
+            if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height)
+                tempImage[y * widthEx + x] = imageData[srcY * widthEx + srcX];
+        }
+    }
+#if 0
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int srcX = x - dx;
@@ -58,6 +67,7 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
             }
         }
     }
+#endif
     memcpy(imageData, tempImage.data(), widthEx * height * sizeof(IndexOfPt));
 
     // Recalculate missing areas
