@@ -49,6 +49,14 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
     // Temporary buffer for pixel movement
     std::vector<IndexOfPt> tempImage(widthEx * height, 0);
 #pragma omp parallel for
+    for (int y = std::max(0, dy); y < std::min(height, height + dy); y++) {
+        for (int x = std::max(0, dx); x < std::min(width, width + dx); x++) {
+            int srcX = x - dx;
+            int srcY = y - dy;
+            tempImage[y * widthEx + x] = imageData[srcY * widthEx + srcX];
+        }
+    }
+#if 0
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int srcX = x - dx;
@@ -57,7 +65,6 @@ void FractalRenderer::moveProcess(int dx, int dy, double newTop, double newLeft,
                 tempImage[y * widthEx + x] = imageData[srcY * widthEx + srcX];
         }
     }
-#if 0
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int srcX = x - dx;

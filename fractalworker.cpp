@@ -1,5 +1,6 @@
 #include "fractalworker.h"
 #include <QImage>
+#include <immintrin.h>
 
 void FractalWorker::run()
 {    
@@ -15,13 +16,36 @@ void FractalWorker::run()
             Complex point(xCoord, yCoord);
 
             if (isJulia) {
-                line[x] = calcPoint(point, lastPoint);
+                line[x] = calcPointAVX(point, lastPoint);
             } else {
-                line[x] = calcPoint(Complex(0, 0), point);
+                line[x] = calcPointAVX(Complex(0, 0), point);
             }
         }
     }
     emit finished();
+}
+
+inline int FractalWorker::calcPointAVX(Complex z, Complex c) const {
+    __m256d zr = _mm256_set1_pd(z.real());
+    __m256d zi = _mm256_set1_pd(z.imag());
+    __m256d cr = _mm256_set1_pd(c.real());
+    __m256d ci = _mm256_set1_pd(c.imag());
+
+    for (int i = 0; i < maxIterations; i++) {
+        __m256d zr2 = _mm256_mul_pd(zr, zr);
+        __m256d zi2 = _mm256_mul_pd(zi, zi);
+        __m256d norm = _mm256_add_pd(zr2, zi2);
+
+        // Break condition
+        __m256d mask = _mm256_cmp_pd(norm, _mm256_set1_pd(4.0), _CMP_GT_OQ);
+        if (_mm256_movemask_pd(mask)) {
+            return i;
+        }
+
+        zi = _mm256_add_pd(_mm256_mul_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(zr, zi)), ci);
+        zr = _mm256_add_pd(_mm256_sub_pd(zr2, zi2), cr);
+    }
+    return 0;
 }
 
 inline int FractalWorker::calcPoint(Complex z, Complex c) const
@@ -38,5 +62,5 @@ inline int FractalWorker::calcPoint(Complex z, Complex c) const
         zi = 2.0 * zr * zi + ci;
         zr = zr2 - zi2 + cr;
     }
-    return 255;
+    return 0;
 }

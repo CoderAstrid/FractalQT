@@ -1,7 +1,7 @@
 QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+QMAKE_CXXFLAGS += -mavx
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
