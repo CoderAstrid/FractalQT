@@ -109,6 +109,7 @@ void MainWindow::initialColorCombo()
         ui->cbPalette->setIconSize(QSize(pix_width, pix_height));
         ui->cbPalette->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     }
+    updateGeometry();
 }
 
 void MainWindow::onChangedMandelPt(Complex pt)

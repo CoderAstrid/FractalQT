@@ -108,3 +108,56 @@ QStatusBar::item {
 QStatusBar QLabel {
     color : '#FFFFFF';
 }
+
+/* Base QRadioButton text styling */
+QRadioButton {
+    color: #e0e0e0; /* Text color matching your theme */    
+    spacing: 8px; /* Space between the indicator and the text */
+}
+
+/* Outer circle (indicator) */
+QRadioButton::indicator {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #8f8f91; /* Default border color */
+    border-radius: 8px; /* Circular shape */
+    background-color: #606060; /* Default background color */
+}
+
+/* Hover effect on the outer circle */
+QRadioButton::indicator:hover {
+    background-color: #808080; /* Slightly lighter on hover */
+}
+
+/* Outer circle when checked (selected state) */
+QRadioButton::indicator:checked {
+	background-color: qradialgradient(
+        cx: 0.5, cy: 0.5, radius: 0.8, /* Centered gradient */
+        stop: 0 #D1D1D1,               /* Inner circle color */
+        stop: 1 #404040                /* Outer circle color */
+    );
+    border: 2px solid #D1D1D1; /* Highlighted border */
+}
+
+
+QCheckBox {
+    color: #e0e0e0; /* Text color */
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #8f8f91;
+    border-radius: 4px; /* Square indicator with rounded corners */
+    background-color: #606060;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #404040;
+    border: 2px solid #000000;
+}
+
+QCheckBox::indicator:hover {
+    background-color: #808080; /* Hover effect */
+}

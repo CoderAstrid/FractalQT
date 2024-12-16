@@ -36,6 +36,7 @@ private:
 private:
     inline int calcPoint(Complex start, Complex c) const;
     inline int calcPointAVX(Complex z, Complex c) const;
+    inline int calcPointSmoothAVX(Complex z, Complex c) const;
 };
 
 #endif // FRACTALWORKER_H

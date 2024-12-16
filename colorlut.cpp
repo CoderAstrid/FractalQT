@@ -27,6 +27,26 @@ ColorLut::ColorLut(const QString& path, const QString& name)
       Size = PALATE_SIZE;
 }
 
+void ColorLut::interpolateColors(const QVector<QColor>& colors, int size)
+{
+    QVector<QRgb> palette;
+    PaletteTable.clear();
+    for (int i = 0; i < size; i++) {
+        double t = double(i) / (size - 1);
+        int index = t * (colors.size() - 1);
+        QColor c1 = colors[index];
+        QColor c2 = colors[qMin(index + 1, colors.size() - 1)];
+
+        double ratio = t * (colors.size() - 1) - index;
+
+        int r = (1 - ratio) * c1.red() + ratio * c2.red();
+        int g = (1 - ratio) * c1.green() + ratio * c2.green();
+        int b = (1 - ratio) * c1.blue() + ratio * c2.blue();
+
+        PaletteTable.push_back(qRgb(r, g, b));
+    }
+}
+
 void ColorLut::Generate(int sz, Palette pal)
 {
     if(sz < 1)
@@ -54,23 +74,27 @@ void ColorLut::Generate(int sz, Palette pal)
 #endif//_DEV_QT
         }
     } else if(pal == eSpectral) {
-        PaletteTable.push_back(QColor(158, 1, 66));
-        PaletteTable.push_back(QColor(213, 62, 79));
-        PaletteTable.push_back(QColor(244, 109, 67));
-        PaletteTable.push_back(QColor(253, 174, 97));
-        PaletteTable.push_back(QColor(254, 224, 139));
-        PaletteTable.push_back(QColor(255, 255, 191));
-        PaletteTable.push_back(QColor(230, 245, 152));
-        PaletteTable.push_back(QColor(171, 221, 164));
-        PaletteTable.push_back(QColor(102, 194, 165));
-        PaletteTable.push_back(QColor(50, 136, 189));
-        PaletteTable.push_back(QColor(94, 79, 162));
+        QVector<QColor> base ;
+        base.append(QColor(158, 1, 66));
+        base.append(QColor(213, 62, 79));
+        base.append(QColor(244, 109, 67));
+        base.append(QColor(253, 174, 97));
+        base.append(QColor(254, 224, 139));
+        base.append(QColor(255, 255, 191));
+        base.append(QColor(230, 245, 152));
+        base.append(QColor(171, 221, 164));
+        base.append(QColor(102, 194, 165));
+        base.append(QColor(50, 136, 189));
+        base.append(QColor(94, 79, 162));
+
+        interpolateColors(base);
     } else if(pal == eYlGnBu) {
-        PaletteTable = {
+        QVector<QColor> base = {
             QColor(255, 255, 217), QColor(237, 248, 177), QColor(199, 233, 180),
             QColor(127, 205, 187), QColor(65, 182, 196), QColor(29, 145, 192),
             QColor(34, 94, 168), QColor(37, 52, 148), QColor(8, 29, 88)
         };
+        interpolateColors(base);
     } else if(pal == ePalHeatMap) {
         PaletteTable.clear();
         for(int i = 0; i < sz; i++) {

@@ -31,7 +31,7 @@
      <widget class="MandelBrotView" name="gvMandel" native="true"/>
     </item>
     <item row="0" column="1" rowspan="2">
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0">
       <item>
        <layout class="QVBoxLayout" name="vlCmd">
         <property name="spacing">
@@ -78,6 +78,46 @@
         </item>
         <item>
          <widget class="QComboBox" name="cbPalette"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblSmoothing">
+          <property name="text">
+           <string>Smoothing</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="optStandard">
+          <property name="text">
+           <string>Normalize iteration</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="optDistance">
+          <property name="text">
+           <string>Distanced iteration</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

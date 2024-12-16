@@ -46,6 +46,8 @@ public:
         return mapName;
     }
 private:
+    void interpolateColors(const QVector<QColor>& colors, int size = 256);
+private:
     int Size;
     std::vector<SVColor> PaletteTable;
     QString mapName;

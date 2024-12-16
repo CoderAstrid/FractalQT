@@ -109,6 +109,8 @@ void FractalRenderer::renderMandelbrotMultithreaded(double left, double top, dou
         return;
     }
 
+    memset(imageData, 0, widthEx * height * sizeof(IndexOfPt));
+
     double zoomLevel = std::log2(1.0 / (right - left));
     int maxIteration = std::min(255 + int(zoomLevel * 50), 2000); // Adjust dynamically
     if(maxIteration <= MAX_INTERATION)
