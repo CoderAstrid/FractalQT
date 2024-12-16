@@ -756,7 +756,7 @@ Portability: Write once, run anywhere.
       return QColor::fromHsvF(t, 1.0, 1.0); // Smooth gradient
    }
    ```
-   ![Smooth Iteration Coloring](screenshots/Smooth Coloring Mandelbrot Set.png?raw=true "Smooth Iteration Coloring")
+   <img src="screenshots/Smooth Coloring Mandelbrot Set.png">
 
 
 2. Escape-Time Coloring
@@ -800,8 +800,7 @@ Portability: Write once, run anywhere.
       return QColor::fromRgbF(1.0 - normalized, normalized, 0.5);
    }
    ```
-
-   ![Orbit Trap Coloring](screenshots/Orbit Trap Coloring Mandelbrot Set.png?raw=true "Orbit Trap Coloring")
+   <img src="screenshots/Orbit Trap Coloring Mandelbrot Set.png">
 
 4. Distance Estimation Coloring
 
@@ -844,7 +843,7 @@ Portability: Write once, run anywhere.
    }
    ```
 
-   ![Palette-Based Blending Mandelbrot Set](screenshots/Palette-Based Blending Mandelbrot Set.png?raw=true "Palette-Based Blending Mandelbrot Set")
+   <img src="screenshots/Palette-Based Blending Mandelbrot Set.png">
 
 ### Sample Coloring Results
 
