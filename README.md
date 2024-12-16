@@ -4,6 +4,16 @@
 
 ---
 
+## Screen Shot
+
+![Mandelbrot](screenshots/rev01.PNG?raw=true "Mandelbrot")
+
+![Mandelbort and Julia](screenshots/rev02-1.PNG?raw=true "Main UI 1")
+
+![Mandelbort and Julia](screenshots/rev02.PNG?raw=true "Main UI 2")
+
+---
+
 ## **Features**
 
 1. **High-Performance Fractal Rendering**:
@@ -717,7 +727,147 @@ Portability: Write once, run anywhere.
 | Ease of Use | Easier (NVIDIA-specific APIs) | Steeper learning curve | 
 | Performance | Highly optimized for NVIDIA | Dependent on hardware vendor |
 | Portability | Limited to NVIDIA GPUs | Runs on multiple platforms |
---- | --- | --- |
+
+## Coloring
+
+1. Smooth Iteration Coloring
+
+   Method:
+
+   Traditional coloring uses the raw iteration count n. 
+   Smooth iteration coloring interpolates fractional values for smoother gradients.
+
+   Formula:
+   
+   $ColorValue=n+1−log⁡2(log⁡2(∣Z∣))$
+
+   Result:
+
+   Produces continuous gradients without abrupt color bands.
+   Gives the fractal a more natural and aesthetically pleasing look.
+
+   Implementation:
+
+   ```
+   QColor smoothColor(int iterations, double magnitude, int maxIterations) {
+      if (iterations == maxIterations) return QColor(Qt::black); // Inside the set
+      double mu = iterations + 1 - log(log(magnitude)) / log(2.0);
+      double t = mu / maxIterations; // Normalize to [0, 1]
+      return QColor::fromHsvF(t, 1.0, 1.0); // Smooth gradient
+   }
+   ```
+   ![Smooth Iteration Coloring](screenshots/Smooth Coloring Mandelbrot Set.png?raw=true "Smooth Iteration Coloring")
+
+
+2. Escape-Time Coloring
+
+   Method:
+
+   Map iteration counts to discrete color bands.
+   Use modulo operation to cycle through a color palette.
+   Colors repeat periodically.
+
+   Result:
+
+   Classic “banded” fractal images with distinct layers.
+
+   Implementation:
+
+   ```
+   QColor escapeTimeColor(int iterations, int maxIterations, const std::vector<QColor>& palette) {
+      if (iterations == maxIterations) return QColor(Qt::black); // Inside the set
+      return palette[iterations % palette.size()];
+   }
+   ```
+
+3. Orbit Trap Coloring
+
+   Method:
+
+   Tracks the orbit (path of a point under iteration) and colors based on proximity to predefined shapes (e.g., a circle or line).
+   Assign colors when the orbit comes close to the shape.
+
+   Result:
+
+   Creates unique and varied visual patterns.
+
+   Implementation:
+
+   ```
+   QColor orbitTrapColor(const Complex& z, int iterations, int maxIterations) {
+      double distance = std::abs(z - Complex(0.5, 0.5)); // Distance to the trap
+      double normalized = std::min(distance, 1.0); // Clamp to [0, 1]
+      return QColor::fromRgbF(1.0 - normalized, normalized, 0.5);
+   }
+   ```
+
+   ![Orbit Trap Coloring](screenshots/Orbit Trap Coloring Mandelbrot Set.png?raw=true "Orbit Trap Coloring")
+
+4. Distance Estimation Coloring
+
+   Method:
+
+   Colors based on the estimated distance of each point from the fractal boundary.
+   The closer a point is to the boundary, the darker it is.
+
+   Result:
+
+   Smooth and detailed boundaries with a gradient effect.
+
+   Implementation:
+
+   ```
+   QColor distanceEstimationColor(const Complex& z, int iterations, int maxIterations) {
+      double distance = std::abs(z); // Calculate distance
+      double normalized = iterations / double(maxIterations);
+      return QColor::fromRgbF(normalized, 0.5, 1.0 - normalized);
+   }
+   ```
+
+5. Custom Gradient Palettes
+
+   Method:
+
+   Use pre-designed gradient palettes for unique looks.
+   Map iteration counts to colors in the gradient.
+
+   Result:
+
+   Enables custom, artistic visuals.
+
+   Implementation:
+
+   ```
+   QColor gradientColor(double value, const std::vector<QColor>& gradient) {
+      int index = value * (gradient.size() - 1); // Map to gradient index
+      return gradient[index];
+   }
+   ```
+
+   ![Palette-Based Blending Mandelbrot Set](screenshots/Palette-Based Blending Mandelbrot Set.png?raw=true "Palette-Based Blending Mandelbrot Set")
+
+### Sample Coloring Results
+
+1. Smooth Iteration:
+
+   Continuous gradients with no visible bands.
+
+2. Escape-Time:
+
+   Vibrant, periodic bands highlighting iteration regions.
+
+3. Orbit Traps:
+
+   Patterns determined by proximity to a specific shape.
+
+4. Distance Estimation:
+
+   Smoothly darkens points as they approach the set boundary.
+
+5. Custom Gradient Palettes:
+
+   Tailored color designs based on artistic choices.
+
 
 ## References
 
